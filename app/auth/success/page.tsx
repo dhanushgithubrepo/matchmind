@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { storeAuthData } from '@/lib/auth';
 
-export default function AuthSuccessPage() {
+function AuthSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -14,26 +14,31 @@ export default function AuthSuccessPage() {
     const name = searchParams.get('name');
 
     if (token && email && name) {
-      // Store auth data
       storeAuthData(token, email, decodeURIComponent(name));
-
-      // Redirect to home or dashboard
-      setTimeout(() => {
+      const t = setTimeout(() => {
         router.push('/');
       }, 1000);
+      return () => clearTimeout(t);
     } else {
-      // If missing data, redirect to error
       router.push('/auth/error');
     }
   }, [searchParams, router]);
 
   return (
+    <div className="text-center">
+      <div className="mb-4 text-4xl">✓</div>
+      <h1 className="text-2xl font-bold mb-2">Authentication Successful!</h1>
+      <p className="text-gray-600">Redirecting you now...</p>
+    </div>
+  );
+}
+
+export default function AuthSuccessPage() {
+  return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="mb-4 text-4xl">✓</div>
-        <h1 className="text-2xl font-bold mb-2">Authentication Successful!</h1>
-        <p className="text-gray-600">Redirecting you now...</p>
-      </div>
+      <Suspense fallback={<div className="text-center">Processing authentication...</div>}>
+        <AuthSuccessContent />
+      </Suspense>
     </div>
   );
 }
